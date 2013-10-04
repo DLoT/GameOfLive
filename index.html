@@ -1,0 +1,148 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+        "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+  <title>GOL</title>
+  <link rel="stylesheet" type="text/css" href="css/gol.css" media="all">
+  <!-- include source files here... -->
+  <script type="text/javascript" src="lib/jquery-2.0.3.min.js"></script>
+  <script type="text/javascript" src="src/Habitat.js"></script>
+
+  <script type="text/javascript">
+    var habitat = new Habitat(),
+        cellSize = 5,
+        started = false,
+        evolver = null,
+        interval = 100
+        generation = 0,
+        cells = 0,
+        mouseDownMode = false
+
+    function getCell(x, y){
+      var gridX = x - (x % cellSize),
+          gridY = y - (y % cellSize),
+          habitatX = gridX / cellSize,
+          habitatY = gridY / cellSize
+
+      if($('#'+habitatX+'-'+habitatY).length){
+        return false
+      }
+
+      habitat.addCell(habitatX, habitatY)
+
+      var aliveCells = Object.keys(habitat.getCells()).length
+      $('#cells').html(aliveCells)
+
+      return $('<div id="'+habitatX+'-'+habitatY+'" class="cell"></div>').css({
+        width:cellSize,
+        height:cellSize,
+        left:gridX,
+        top:gridY,
+        backgroundColor: 'rgb('+ generation%255 +','+ (generation*2)%255 +','+ (generation*4)%255+')'
+      }).on({
+        click:function (e) {
+          e.stopPropagation()
+          $(this).remove()
+          habitat.removeCell(habitatX, habitatY)
+        },
+        mouseenter:function (e) {
+          e.stopPropagation()
+          if (mouseDownMode == 'remove') {
+            $(this).remove()
+            habitat.removeCell(habitatX, habitatY)
+          }
+        },
+        mousedown:function (e) {
+          e.stopPropagation()
+          mouseDownMode = 'remove'
+        },
+        mouseup:function (e) {
+          e.stopPropagation()
+          mouseDownMode = false
+        }
+      })
+
+    }
+    function evolve(){
+      var nextGen = habitat.evolve(),
+          aliveCells;
+      for(var x= 0, len = nextGen.addCells.length;x<len;x++){
+        var gridX = nextGen.addCells[x][0],
+            gridY = nextGen.addCells[x][1]
+        $('body').append(getCell(gridX * cellSize, gridY * cellSize))
+      }
+      for(var x= 0, len = nextGen.removeCells.length;x<len;x++){
+        var gridX = nextGen.removeCells[x][0],
+            gridY = nextGen.removeCells[x][1]
+        $('#'+gridX+'-'+gridY).remove()
+        habitat.removeCell(gridX, gridY);
+      }
+      aliveCells = Object.keys(habitat.getCells()).length
+      if(!aliveCells){
+        clearInterval(evolver)
+      }
+      $('#generation').html(generation++)
+      $('#cells').html(aliveCells)
+
+    }
+
+    $(document).ready(function() {
+
+      $(document).on({
+        mousemove:function(e){
+          if(mouseDownMode == 'add'){
+            $('body').append(getCell(e.pageX, e.pageY))
+          }
+        },
+        click:function(e){
+          $('body').append(getCell(e.pageX, e.pageY))
+        },
+        mousedown:function(e){
+          mouseDownMode = 'add'
+        },
+        mouseup:function(e){
+          mouseDownMode = false
+        }
+      })
+
+
+      $('#start').click(function(e){
+        e.stopPropagation()
+        evolver = setInterval(evolve, interval)
+        generation=0
+        cells=0
+      })
+
+      $('#stop').click(function(e){
+        e.stopPropagation()
+        clearInterval(evolver)
+      })
+
+      $('#clear').click(function(e){
+        e.stopPropagation()
+        clearInterval(evolver)
+        habitat.reset()
+        generation=0
+        $('.cell').remove()
+      })
+    })
+
+  </script>
+
+</head>
+<body>
+  <div id="stats">
+    <span>Generation:</span><span id="generation" class="stat"></span>
+    <span>Cells alive</span><span id="cells" class="stat"></span>
+  </div>
+  <div id="start">
+    Start
+  </div>
+  <div id="stop">
+    Stop
+  </div>
+  <div id="clear">
+    clear
+  </div>
+</body>
+</html>

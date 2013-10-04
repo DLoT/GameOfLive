@@ -1,0 +1,38 @@
+html{
+    min-width: 100%;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+
+#stats{
+    width: 100%;
+}
+#stats.span{
+    margin: 3px;
+}
+.stat{
+    display: inline-block;
+    width: 100px;
+    height: 20px;
+    margin-left: 10px;
+    border: 1px dotted black;
+}
+
+.cell{
+    position: absolute;
+    background-color: #000;
+}
+
+.alive{
+    background-color: #000;
+}
+
+#universe{
+    height: 150px;
+    width: 150px;
+    position: relative;
+}
